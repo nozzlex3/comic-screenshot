@@ -1,0 +1,12 @@
+# data
+*.png
+*.zip
+*.pdf
+
+# directory
+png/
+zip/
+pdf/
+
+# Mac files
+.DS_Store
