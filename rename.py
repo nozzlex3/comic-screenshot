@@ -1,7 +1,7 @@
 # coding:utf-8
 import glob
 import os
-for filepath in glob.glob("./png/君のことが*/*.png"):
+for filepath in glob.glob("./png/*/*.png"):
     comic_num = filepath.split("_")[1][0:3]
     file_name = filepath.split("/")[-1]
     file_directory = filepath[0:-len(file_name)]
