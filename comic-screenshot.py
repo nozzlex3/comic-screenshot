@@ -40,12 +40,11 @@ def boolInteractiveInput():
 # 対話型 環境定義
 print("### 電子書籍をpngにして保存します ###")
 print("### タイトルとページ番号を入力した後、電子書籍を全画面表示にして下さい ###")
-print("### ページごとの表示になっているか確認 ###")
 
 print("保存するフォルダ名を入力してください\n> ", end='')
 folder_name = input()
 if (os.path.isdir(PNG_FOLDER+'/'+folder_name)):
-    print(folder_name, "は既に存在しています\n")
+    print(folder_name, "は既に存在しています\n")
     while True:
         try:
             print("上書きしますか？[y/n]\n> ", end='')
@@ -57,7 +56,6 @@ if (os.path.isdir(PNG_FOLDER+'/'+folder_name)):
                 exit(1)
         except ValueError:
             print("'y'か'n'を入力してください\n")
-
 while True:
     try:
         print("ページ数を入力してください\n> ", end='')
@@ -160,12 +158,14 @@ if spread_flag:
     for page_number in range(top_page_number, total_page_number, 2):
         # 奇数ページ
         filename = str(page_number+1).zfill(4) + '.png'
-        img = pyautogui.screenshot(region=(display_width//2, 0, page_width, page_height))
+        img = pyautogui.screenshot(
+            region=(display_width//2, 0, page_width, page_height))
         img.save(PNG_FOLDER+'/'+folder_name + '/' + filename)
 
         # 偶数ページ
         filename = str(page_number+2).zfill(4) + '.png'
-        img = pyautogui.screenshot(region=(display_width//2-page_width, 0, page_width, page_height))
+        img = pyautogui.screenshot(
+            region=(display_width//2-page_width, 0, page_width, page_height))
         img.save(PNG_FOLDER+'/'+folder_name + '/' + filename)
         pyautogui.keyDown('left')
         time.sleep(SPAN)
@@ -181,7 +181,8 @@ else:
 
 # ZIP
 # 標準ライブラリ shutil が必要
-shutil.make_archive(ZIP_FOLDER+'/'+folder_name, 'zip', root_dir=PNG_FOLDER+'/'+folder_name)
+shutil.make_archive(ZIP_FOLDER+'/'+folder_name, 'zip',
+                    root_dir=PNG_FOLDER+'/'+folder_name)
 
 # PDF
 # img2pdf,PILLOW が必要
