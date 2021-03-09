@@ -2,23 +2,19 @@
 import pyautogui
 import time
 import os
-# import shutil
-from pathlib import Path
-# import img2pdf
+import shutil
 # from PIL import Image
-
+# import img2pdf
+# from pathlib import Path
 
 SPAN = 0.1
 WAIT_TIME = 5
+TRANSPARENT_THRESHOLD = 10
 
 # 背景色
 # honto
-# BACKGROUND_RGB = (50, 50, 60)     # Windows
+BACKGROUND_RGB = (50, 50, 60)     # Windows
 # BACKGROUND_RGB = (50, 50, 59)     # Mac
-
-
-BACKGROUND_RGB = (51, 51, 51)         # 少年ジャンプ+
-TRANSPARENT_THRESHOLD = 10
 
 # フォルダ名
 PNG_FOLDER = "png"
@@ -37,13 +33,14 @@ def boolInteractiveInput():
         return True
     elif input_value in ("n", "no", "0", "false", "f"):
         return False
-    else raise ValueError
+    else:
+        raise ValueError
 
 
 # 対話型 環境定義
 print("### 電子書籍をpngにして保存します ###")
 print("### タイトルとページ番号を入力した後、電子書籍を全画面表示にして下さい ###")
-print("### ページごとの表示になっているか確認（見開きNG） ###")
+print("### ページごとの表示になっているか確認 ###")
 
 print("保存するフォルダ名を入力してください\n> ", end='')
 folder_name = input()
@@ -64,7 +61,7 @@ if (os.path.isdir(PNG_FOLDER+'/'+folder_name)):
 while True:
     try:
         print("ページ数を入力してください\n> ", end='')
-        page = int(input())
+        total_page_number = int(input())
         break
     except ValueError:
         print("ページ数は半角数字である必要があります\n")
@@ -98,13 +95,14 @@ while True:
         print("中止しました")
         exit(1)
 
-
+# フォルダ作成
 os.makedirs(PNG_FOLDER + '/' + folder_name, exist_ok=True)
 
 # カウントダウン
 for second in range(WAIT_TIME+1):
-    print("\r{:02} [s]".format(WAIT_TIME-second), end='')
+    print("\r{:02} [img]".format(WAIT_TIME-second), end='')
     time.sleep(1)
+print("\n")
 
 # ディスプレイサイズ取得
 img = pyautogui.screenshot()
@@ -139,19 +137,19 @@ if spread_cover_flag:
     # ページサイズは半分
     page_width = (x2-x1+1)//2
     page_height = y2-y1+1
-    top_page = 0
+    top_page_number = 0
 # 表紙が単一ページ
 else:
     page_width = x2-x1+1
     page_height = y2-y1+1
-    top_page = 1
+    top_page_number = 1
 
 
 # 表紙が単一ページの場合の表紙のスクリーンショット
 if not spread_cover_flag:
-    out_filename = str(1).zfill(4) + '.png'
-    s = pyautogui.screenshot(region=(x1, y1, page_width, page_height))
-    s.save(PNG_FOLDER+'/'+folder_name + '/' + out_filename)
+    filename = str(1).zfill(4) + '.png'
+    img = pyautogui.screenshot(region=(x1, y1, page_width, page_height))
+    img.save(PNG_FOLDER+'/'+folder_name + '/' + filename)
     pyautogui.keyDown('left')
     time.sleep(SPAN)
 
@@ -159,33 +157,39 @@ if not spread_cover_flag:
 # ページ数分スクリーンショットをとる
 # 見開きの場合
 if spread_flag:
-    for p in range(top_page, page, 2):
+    for page_number in range(top_page_number, total_page_number, 2):
         # 奇数ページ
-        out_filename = str(p+1).zfill(4) + '.png'
-        s = pyautogui.screenshot(region=(display_width//2, 0, page_width, page_height))
-        s.save(PNG_FOLDER+'/'+folder_name + '/' + out_filename)
+        filename = str(page_number+1).zfill(4) + '.png'
+        img = pyautogui.screenshot(region=(display_width//2, 0, page_width, page_height))
+        img.save(PNG_FOLDER+'/'+folder_name + '/' + filename)
 
         # 偶数ページ
-        out_filename = str(p+2).zfill(4) + '.png'
-        s = pyautogui.screenshot(region=(display_width//2-page_width, 0, page_width, page_height))
-        s.save(PNG_FOLDER+'/'+folder_name + '/' + out_filename)
+        filename = str(page_number+2).zfill(4) + '.png'
+        img = pyautogui.screenshot(region=(display_width//2-page_width, 0, page_width, page_height))
+        img.save(PNG_FOLDER+'/'+folder_name + '/' + filename)
         pyautogui.keyDown('left')
         time.sleep(SPAN)
 
 # 単一ページの場合
 else:
-    for p in range(top_page, page):
-        out_filename = str(p+1).zfill(4) + '.png'
-        s = pyautogui.screenshot(region=(x1, y1, page_width, page_height))
-        s.save(PNG_FOLDER+'/'+folder_name + '/' + out_filename)
+    for page_number in range(top_page_number, total_page_number):
+        filename = str(page_number+1).zfill(4) + '.png'
+        img = pyautogui.screenshot(region=(x1, y1, page_width, page_height))
+        img.save(PNG_FOLDER+'/'+folder_name + '/' + filename)
         pyautogui.keyDown('left')
         time.sleep(SPAN)
 
+# ZIP
+# 標準ライブラリ shutil が必要
+shutil.make_archive(ZIP_FOLDER+'/'+folder_name, 'zip', root_dir=PNG_FOLDER+'/'+folder_name)
 
-# shutil.make_archive(ZIP_FOLDER+'/'+folder_name, 'zip', root_dir=PNG_FOLDER+'/'+folder_name)
+# PDF
+# img2pdf,PILLOW が必要
 # img_path_list = [str(img_path) for img_path in Path(
 #     "./"+PNG_FOLDER+'/'+folder_name).rglob('*.png')]
+# img_path_list.sort()
 # with open(PDF_FOLDER+'/'+folder_name+".pdf",'wb') as f:
 #     # for img_path in img_path_list:
 #     f.write(img2pdf.convert(img_path_list))
+
 print("finished")
